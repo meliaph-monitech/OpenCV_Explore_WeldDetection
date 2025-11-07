@@ -495,11 +495,11 @@ gray_raw = to_gray_cached(bgr_raw)
 
 # Optional global preprocessing (applies to gray for all methods)
 st.sidebar.header("Global Preprocessing (optional)")
-use_retinex = st.sidebar.toggle("Retinex (SSR)", value=False)
-retinex_sigma = st.sidebar.slider("Retinex σ", 5, 51, 15, step=2)
-use_homomorphic = st.sidebar.toggle("Homomorphic filter", value=False)
-homo_cutoff = st.sidebar.slider("Homomorphic cutoff", 0.005, 0.05, 0.015, step=0.001)
-homo_order = st.sidebar.slider("Homomorphic order", 1, 4, 2)
+use_retinex = st.sidebar.toggle("Retinex (SSR)", value=False, key="sb_retinex")
+retinex_sigma = st.sidebar.slider("Retinex σ", 5, 51, 15, step=2, key="sb_retinex_sigma")
+use_homomorphic = st.sidebar.toggle("Homomorphic filter", value=False, key="sb_homo")
+homo_cutoff = st.sidebar.slider("Homomorphic cutoff", 0.005, 0.05, 0.015, step=0.001, key="sb_homo_cutoff")
+homo_order = st.sidebar.slider("Homomorphic order", 1, 4, 2, key="sb_homo_order")
 
 gray = gray_raw.copy()
 if use_retinex:
@@ -541,15 +541,15 @@ with tab1:
     st.markdown("### 1) Threshold (Intensity or Gradient)")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        use_gradient = st.toggle("Use gradient magnitude", value=False)
+        use_gradient = st.toggle("Use gradient magnitude", value=False, key="t1_usegrad")
     with c2:
-        threshold = st.slider("Threshold", min_value=0, max_value=255, value=140, step=1)
+        threshold = st.slider("Threshold", min_value=0, max_value=255, value=140, step=1, key="t1_thresh")
     with c3:
-        blur_ksize = st.slider("Gaussian blur ksize", 0, 21, 5, step=1)
+        blur_ksize = st.slider("Gaussian blur ksize", 0, 21, 5, step=1, key="t1_blur")
     with c4:
-        close_ksize = st.slider("Morph close ksize", 0, 21, 5, step=1)
+        close_ksize = st.slider("Morph close ksize", 0, 21, 5, step=1, key="t1_close")
     with c5:
-        alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05)
+        alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="t1_alpha")
 
     heatmap, binary, overlay = method_threshold(gray, threshold, use_gradient, blur_ksize, close_ksize, alpha)
 
@@ -568,16 +568,16 @@ with tab2:
     st.markdown("### 2) Canny + Fill Largest Region")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        t_low = st.slider("Canny low", 0, 255, 60, step=1)
+        t_low = st.slider("Canny low", 0, 255, 60, step=1, key="t2_low")
     with c2:
-        ratio = st.select_slider("High/Low ratio", options=[2.0, 2.5, 3.0, 3.5], value=3.0)
+        ratio = st.select_slider("High/Low ratio", options=[2.0, 2.5, 3.0, 3.5], value=3.0, key="t2_ratio")
         t_high = int(t_low * float(ratio))
         t_high = max(t_low + 1, min(255, t_high))
         st.write(f"High ≈ {t_high}")
     with c3:
-        blur_ksize = st.slider("Pre-blur ksize", 0, 21, 5, step=1)
+        blur_ksize = st.slider("Pre-blur ksize", 0, 21, 5, step=1, key="t2_blur")
     with c4:
-        dilate_iters = st.slider("Dilate iterations", 0, 5, 2)
+        dilate_iters = st.slider("Dilate iterations", 0, 5, 2, key="t2_dilate")
     with c5:
         alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="alpha_canny")
 
@@ -598,31 +598,31 @@ with tab3:
     st.markdown("### 3) CLAHE + Otsu / Adaptive Thresholding")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        use_clahe = st.toggle("Enable CLAHE", value=True)
+        use_clahe = st.toggle("Enable CLAHE", value=True, key="t3_clahe")
     with c2:
-        clahe_clip = st.slider("CLAHE clipLimit", 0.1, 5.0, 2.0, step=0.1)
+        clahe_clip = st.slider("CLAHE clipLimit", 0.1, 5.0, 2.0, step=0.1, key="t3_clip")
     with c3:
-        clahe_grid = st.slider("CLAHE tileGridSize", 4, 32, 8, step=1)
+        clahe_grid = st.slider("CLAHE tileGridSize", 4, 32, 8, step=1, key="t3_grid")
     with c4:
-        blur_ksize = st.slider("Gaussian blur ksize", 0, 21, 5, step=1, key="int_blur")
+        blur_ksize = st.slider("Gaussian blur ksize", 0, 21, 5, step=1, key="t3_blur")
     with c5:
-        alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="alpha_int")
+        alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="t3_alpha")
 
     c6, c7, c8, c9 = st.columns(4)
     with c6:
-        mode = st.radio("Threshold mode", ["Otsu", "Adaptive"], horizontal=True)
+        mode = st.radio("Threshold mode", ["Otsu", "Adaptive"], horizontal=True, key="t3_mode")
     with c7:
-        otsu_bias = st.slider("Otsu bias (× T)", 0.5, 1.5, 1.0, step=0.05)
+        otsu_bias = st.slider("Otsu bias (× T)", 0.5, 1.5, 1.0, step=0.05, key="t3_otsu")
     with c8:
-        adapt_method = st.selectbox("Adaptive method", ["Mean", "Gaussian"], index=1)
+        adapt_method = st.selectbox("Adaptive method", ["Mean", "Gaussian"], index=1, key="t3_am")
     with c9:
-        adapt_block = st.slider("Adaptive block size (odd)", 3, 51, 21, step=2)
+        adapt_block = st.slider("Adaptive block size (odd)", 3, 51, 21, step=2, key="t3_ab")
     c10, c11 = st.columns(2)
     with c10:
-        adapt_c = st.slider("Adaptive C (stricter when higher)", -10, 20, 2, step=1)
+        adapt_c = st.slider("Adaptive C (stricter when higher)", -10, 20, 2, step=1, key="t3_ac")
     with c11:
-        morph_ksize = st.slider("Morph open ksize", 0, 21, 5, step=1)
-    morph_iters = st.slider("Morph open iters", 0, 5, 1)
+        morph_ksize = st.slider("Morph open ksize", 0, 21, 5, step=1, key="t3_mk")
+    morph_iters = st.slider("Morph open iters", 0, 5, 1, key="t3_mi")
 
     heatmap, binary, overlay = method_intensity(
         gray=gray,
@@ -655,27 +655,27 @@ with tab4:
     st.markdown("### 4) Bright-Band Guided Detection")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        use_clahe = st.toggle("Enable CLAHE", value=True, key="bb_clahe")
+        use_clahe = st.toggle("Enable CLAHE", value=True, key="t4_clahe")
     with c2:
-        clahe_clip = st.slider("CLAHE clipLimit", 0.1, 5.0, 2.0, step=0.1, key="bb_clip")
+        clahe_clip = st.slider("CLAHE clipLimit", 0.1, 5.0, 2.0, step=0.1, key="t4_clip")
     with c3:
-        clahe_grid = st.slider("CLAHE tileGridSize", 4, 32, 8, step=1, key="bb_grid")
+        clahe_grid = st.slider("CLAHE tileGridSize", 4, 32, 8, step=1, key="t4_grid")
     with c4:
-        bilateral_d = st.slider("Bilateral d", 0, 15, 5, step=1)
+        bilateral_d = st.slider("Bilateral d", 0, 15, 5, step=1, key="t4_bd")
     with c5:
-        bilateral_sigma = st.slider("Bilateral sigma (color/space)", 1, 150, 50, step=1)
+        bilateral_sigma = st.slider("Bilateral sigma (color/space)", 1, 150, 50, step=1, key="t4_bs")
 
     c6, c7, c8, c9, c10 = st.columns(5)
     with c6:
-        profile_pct = st.slider("Row percentile for band", 50, 100, 85, step=1)
+        profile_pct = st.slider("Row percentile for band", 50, 100, 85, step=1, key="t4_pp")
     with c7:
-        band_frac = st.slider("Band fraction of peak", 0.5, 1.0, 0.85, step=0.01)
+        band_frac = st.slider("Band fraction of peak", 0.5, 1.0, 0.85, step=0.01, key="t4_bf")
     with c8:
-        band_margin = st.slider("Band vertical margin (px)", 0, 100, 20, step=1)
+        band_margin = st.slider("Band vertical margin (px)", 0, 100, 20, step=1, key="t4_bm")
     with c9:
-        min_area_frac = st.slider("Min area fraction", 0.0, 0.5, 0.01, step=0.005)
+        min_area_frac = st.slider("Min area fraction", 0.0, 0.5, 0.01, step=0.005, key="t4_maf")
     with c10:
-        min_aspect = st.slider("Min aspect (w/h)", 1.0, 20.0, 5.0, step=0.5)
+        min_aspect = st.slider("Min aspect (w/h)", 1.0, 20.0, 5.0, step=0.5, key="t4_masp")
 
     alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="bb_alpha")
 
@@ -710,11 +710,11 @@ with tab5:
     st.markdown("### 5) Sobel Band Edges (Upper/Lower)")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        sobel_ksize = st.select_slider("Sobel ksize", options=[1,3,5,7], value=3)
+        sobel_ksize = st.select_slider("Sobel ksize", options=[1,3,5,7], value=3, key="t5_sk")
     with c2:
-        band_width = st.slider("Band half-width (px)", 0, 50, 10)
+        band_width = st.slider("Band half-width (px)", 0, 50, 10, key="t5_bw")
     with c3:
-        thresh = st.slider("Edge threshold", 0, 255, 80)
+        thresh = st.slider("Edge threshold", 0, 255, 80, key="t5_th")
     with c4:
         alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="sobel_alpha")
 
@@ -735,11 +735,11 @@ with tab6:
     st.markdown("### 6) Sauvola Local Thresholding")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        window = st.slider("Window (odd)", 3, 101, 31, step=2)
+        window = st.slider("Window (odd)", 3, 101, 31, step=2, key="t6_win")
     with c2:
-        k = st.slider("k (sensitivity)", 0.05, 0.8, 0.2, step=0.05)
+        k = st.slider("k (sensitivity)", 0.05, 0.8, 0.2, step=0.05, key="t6_k")
     with c3:
-        post_open = st.slider("Morph open ksize", 0, 21, 5, step=1)
+        post_open = st.slider("Morph open ksize", 0, 21, 5, step=1, key="t6_po")
     with c4:
         alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="sauv_alpha")
 
@@ -760,13 +760,13 @@ with tab7:
     st.markdown("### 7) Morphological Top-hat")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        ksize = st.slider("SE size", 3, 101, 31, step=2)
+        ksize = st.slider("SE size", 3, 101, 31, step=2, key="t7_se")
     with c2:
-        se_shape = st.selectbox("SE shape", ["ellipse", "rect", "ones"], index=0)
+        se_shape = st.selectbox("SE shape", ["ellipse", "rect", "ones"], index=0, key="t7_shape")
     with c3:
-        thresh = st.slider("Threshold", 0, 255, 30)
+        thresh = st.slider("Threshold", 0, 255, 30, key="t7_th")
     with c4:
-        post_close = st.slider("Morph close ksize", 0, 21, 5, step=1)
+        post_close = st.slider("Morph close ksize", 0, 21, 5, step=1, key="t7_pc")
     with c5:
         alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="th_alpha")
 
@@ -787,16 +787,16 @@ with tab8:
     st.markdown("### 8) Gabor Filter Bank")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        n_orients = st.select_slider("#Orientations", options=[4,6,8,12], value=8)
+        n_orients = st.select_slider("#Orientations", options=[4,6,8,12], value=8, key="t8_no")
     with c2:
-        lambd = st.slider("Wavelength (λ)", 2.0, 40.0, 12.0, step=1.0)
+        lambd = st.slider("Wavelength (λ)", 2.0, 40.0, 12.0, step=1.0, key="t8_la")
     with c3:
-        gamma = st.slider("Gamma (aspect)", 0.1, 1.0, 0.5, step=0.05)
+        gamma = st.slider("Gamma (aspect)", 0.1, 1.0, 0.5, step=0.05, key="t8_ga")
     with c4:
-        sigma = st.slider("Sigma", 1.0, 20.0, 4.0, step=0.5)
+        sigma = st.slider("Sigma", 1.0, 20.0, 4.0, step=0.5, key="t8_si")
     with c5:
-        thresh = st.slider("Threshold", 0, 255, 50)
-    post_close = st.slider("Morph close ksize", 0, 21, 5, step=1)
+        thresh = st.slider("Threshold", 0, 255, 50, key="t8_th")
+    post_close = st.slider("Morph close ksize", 0, 21, 5, step=1, key="t8_pc")
     alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="gabor_alpha")
 
     heatmap, binary, overlay = method_gabor(gray, n_orients, lambd, gamma, sigma, thresh, post_close, alpha)
@@ -816,19 +816,19 @@ with tab9:
     st.markdown("### 9) Hough-guided ROI + Local Threshold")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        canny_low = st.slider("Canny low", 0, 255, 60, step=1)
+        canny_low = st.slider("Canny low", 0, 255, 60, step=1, key="t9_cl")
     with c2:
-        ratio = st.select_slider("High/Low ratio", options=[2.0, 2.5, 3.0], value=3.0)
+        ratio = st.select_slider("High/Low ratio", options=[2.0, 2.5, 3.0], value=3.0, key="t9_ratio")
     with c3:
-        hough_thresh = st.slider("Hough threshold", 10, 200, 80)
+        hough_thresh = st.slider("Hough threshold", 10, 200, 80, key="t9_ht")
     with c4:
-        min_len = st.slider("Min line length", 10, 1000, 200)
+        min_len = st.slider("Min line length", 10, 1000, 200, key="t9_ml")
     with c5:
-        max_gap = st.slider("Max gap", 0, 200, 20)
+        max_gap = st.slider("Max gap", 0, 200, 20, key="t9_mg")
 
-    roi_halfwidth = st.slider("ROI half-width (px)", 1, 80, 20)
-    adapt_block = st.slider("Adaptive block size (odd)", 3, 101, 31, step=2)
-    adapt_c = st.slider("Adaptive C", -20, 20, 2, step=1)
+    roi_halfwidth = st.slider("ROI half-width (px)", 1, 80, 20, key="t9_rhw")
+    adapt_block = st.slider("Adaptive block size (odd)", 3, 101, 31, step=2, key="t9_ab")
+    adapt_c = st.slider("Adaptive C", -20, 20, 2, step=1, key="t9_ac")
     alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="hough_alpha")
 
     heatmap, binary, overlay = method_hough_roi(bgr_raw, gray, canny_low, ratio, hough_thresh, min_len, max_gap, roi_halfwidth, adapt_block, adapt_c, alpha)
@@ -848,15 +848,15 @@ with tab10:
     st.markdown("### 10) MSER Regions")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        delta = st.slider("Δ (step)", 1, 10, 5)
+        delta = st.slider("Δ (step)", 1, 10, 5, key="t10_delta")
     with c2:
-        min_area = st.slider("Min area", 30, 20000, 100)
+        min_area = st.slider("Min area", 30, 20000, 100, key="t10_min")
     with c3:
-        max_area = st.slider("Max area", 1000, 200000, 50000, step=1000)
+        max_area = st.slider("Max area", 1000, 200000, 50000, step=1000, key="t10_max")
     with c4:
-        max_var = st.slider("Max variation", 0.1, 1.0, 0.5, step=0.05)
+        max_var = st.slider("Max variation", 0.1, 1.0, 0.5, step=0.05, key="t10_var")
     with c5:
-        bright = st.toggle("Detect bright regions", value=True)
+        bright = st.toggle("Detect bright regions", value=True, key="t10_bright")
     alpha = st.slider("Overlay alpha", 0.0, 1.0, 0.5, step=0.05, key="mser_alpha")
 
     heatmap, binary, overlay = method_mser(bgr_raw, gray, delta, min_area, max_area, max_var, bright, alpha)
