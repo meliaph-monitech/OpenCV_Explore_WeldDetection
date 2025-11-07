@@ -369,7 +369,7 @@ with tab2:
     st.markdown("### 2) Canny + Fill Largest Region")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
-        t_low = st.slider("Canny low", 0, 255, 60, step=1)
+        t_low = st.slider("Canny low", 0, 255, 10, step=1)
     with c2:
         ratio = st.select_slider("High/Low ratio", options=[2.0, 2.5, 3.0, 3.5], value=3.0)
         t_high = int(t_low * float(ratio))
