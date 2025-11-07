@@ -459,15 +459,33 @@ def method_hough_roi(bgr: np.ndarray, gray: np.ndarray, canny_low: int, ratio: f
 # 10) MSER detector (bright or dark)
 
 def method_mser(bgr: np.ndarray, gray: np.ndarray, delta: int, min_area: int, max_area: int, max_var: float, bright: bool, alpha: float):
-    mser = cv2.MSER_create(_delta=delta, _min_area=min_area, _max_area=max_area, _max_variation=max_var)
-    if bright:
-        regions, _ = mser.detectRegions(gray)
-    else:
-        # invert for dark-on-bright detection
-        regions, _ = mser.detectRegions(255 - gray)
+    # Some OpenCV builds don't accept keyword args in MSER_create; use defaults + setters for maximum compatibility
+    try:
+        mser = cv2.MSER_create()
+    except Exception:
+        # Fallback namespace variant seen in some builds
+        mser = cv2.MSER_create()
+    # Defensive casting
+    mser.setDelta(int(delta))
+    mser.setMinArea(int(min_area))
+    mser.setMaxArea(int(max_area))
+    try:
+        mser.setMaxVariation(float(max_var))
+    except Exception:
+        # Some builds name it "setMaxVariation"; keep try just in case
+        pass
+
+    g = gray
+    if not bright:
+        g = 255 - g
+    regions, _ = mser.detectRegions(g)
+
     mask = np.zeros_like(gray, np.uint8)
     for pts in regions:
-        cv2.fillPoly(mask, [pts.reshape(-1, 1, 2)], 255)
+        # Ensure int32 and proper shape for fillPoly
+        poly = np.asarray(pts, dtype=np.int32).reshape(-1, 1, 2)
+        cv2.fillPoly(mask, [poly], 255)
+
     heatmap = apply_heatmap01(normalize01(gray))
     overlay = overlay_mask_on_image(bgr, mask, alpha)
     return heatmap, mask, overlay
