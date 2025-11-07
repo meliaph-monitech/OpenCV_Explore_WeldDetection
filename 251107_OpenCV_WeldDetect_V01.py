@@ -43,11 +43,24 @@ def apply_heatmap01(x01: np.ndarray) -> np.ndarray:
 
 def overlay_mask_on_image(bgr: np.ndarray, mask: np.ndarray, alpha: float = 0.5,
                           color=(0, 0, 255)) -> np.ndarray:
-    mask3 = np.dstack([mask] * 3)
+    # Robust overlay that tolerates 1- or 3-channel masks and mismatched sizes
+    if mask is None:
+        return bgr
+    if mask.ndim == 3:
+        # Reduce to single channel if someone passed a color mask
+        mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+    # Ensure mask matches the image size
+    if bgr.shape[:2] != mask.shape[:2]:
+        mask = cv2.resize(mask, (bgr.shape[1], bgr.shape[0]), interpolation=cv2.INTER_NEAREST)
+    # Binary mask as boolean
+    m = (mask > 0)
+    # Create a colored layer and blend only where mask is True
     overlay = bgr.copy()
-    overlay[mask3 > 0] = color
-    mixed = cv2.addWeighted(bgr, 1 - alpha, overlay, alpha, 0)
-    return mixed
+    color_img = np.zeros_like(overlay)
+    color_img[:] = color
+    overlay[m] = color_img[m]
+    out = cv2.addWeighted(bgr, 1 - alpha, overlay, alpha, 0)
+    return out
 
 
 def bin_kernel(k: int) -> np.ndarray:
@@ -98,7 +111,11 @@ def method_threshold(gray: np.ndarray,
 
 
 def heatmap_overlay(heatmap_bgr: np.ndarray, mask: np.ndarray, alpha: float) -> np.ndarray:
-    base = heatmap_bgr.copy()
+    # Guarantee heatmap is 3-channel BGR
+    if heatmap_bgr.ndim == 2:
+        base = cv2.cvtColor(heatmap_bgr, cv2.COLOR_GRAY2BGR)
+    else:
+        base = heatmap_bgr.copy()
     return overlay_mask_on_image(base, mask, alpha=alpha, color=(0, 0, 255))
 
 
